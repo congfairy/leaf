@@ -1,12 +1,14 @@
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient
 import tornado.ioloop
 import tornado.web
+import os,sys
 from tornado import gen
-
 from functools import partial
 
 total_downloaded = 0
-
+filepath = sys.argv[1]
+uid = sys.argv[2]
+gid = sys.argv[3]
 def chunky(path, chunk):
    global total_downloaded
    total_downloaded += len(chunk)
@@ -17,15 +19,15 @@ def chunky(path, chunk):
 
 @gen.coroutine
 def writer(file_name):
-   request = HTTPRequest('http://127.0.0.1:8880/', streaming_callback=partial(chunky, file_name))
+   url = "http://127.0.0.1:8880/download?filepath="+filepath+"&uid="+uid+"&gid="+gid
+   request = HTTPRequest(url, streaming_callback=partial(chunky, file_name))
    http_client = AsyncHTTPClient()
    response = yield http_client.fetch(request)
-
    tornado.ioloop.IOLoop.instance().stop()
    print("total bytes downloaded was", total_downloaded)
 
 if __name__ == "__main__":
-   writer('test78')
+   writer(os.path.basename(filepath)+"new")
    tornado.ioloop.IOLoop.instance().start()
 
 
