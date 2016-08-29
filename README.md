@@ -7,6 +7,9 @@ the result will be below which can be used by some program in the client：<br>
 check the "end" string to make sure you get the whole information。<br>
 
 ##download
-run server.py and client.py to download files.
+Client: python3 client.py /root/leaf/logclient 0 0 (the parameters are:filepath,uid,gid)<br>
+        and the file will be downloaded with the filename filepathnew<br>
+server:just run :python3 server.py<br>
+
 
 
