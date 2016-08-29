@@ -14,6 +14,49 @@ def read_in_chunks(infile, chunk_size=1024*64):
        yield chunk
        chunk = infile.read(chunk_size)
 
+def read_in_chunks_pos(infile, pos, chunk_size=1024*64):
+   infile.seek(int(pos))
+   chunk = infile.read(chunk_size)
+   while chunk:
+       yield chunk
+       chunk = infile.read(chunk_size)
+
+class ReadRequestHandler(tornado.web.RequestHandler):
+   @tornado.web.asynchronous
+   @gen.coroutine
+   def get(self):
+       # ideally you would send in the get request what file you want to send
+       # back as right now this is limited to what is hard coded in
+        total_sent = 0
+        uid = self.get_argument('uid')
+        gid = self.get_argument('gid')
+        base_dir = self.get_argument('filepath')
+        pos = self.get_argument('pos',0)
+        if (base_dir==None or uid==None or gid==None or pos==None):
+            self.write("Invalid argument!You caused a %d error."%status_code)
+            exit(1)
+        if(os.path.exists(base_dir)):
+          statinfo = os.stat(base_dir)
+          if(int(uid)==statinfo.st_uid and int(gid)==statinfo.st_gid):
+              mode = statinfo.st_mode
+          else:
+              self.write("Permission denied.")
+              exit(1)
+        else:
+            self.write("File or directory doesn't exist!You caused a %d error."%status_code)
+            exit(1)
+        if (S_ISDIR(mode)):
+            self.write("This is not a file!You caused a %d error."%status_code)
+            exit(1)
+        else:
+            with open(base_dir, 'rb') as infile:
+                for chunk in read_in_chunks_pos(infile,pos):
+                    self.write(chunk)
+                    yield gen.Task(self.flush)
+                    total_sent += len(chunk)
+                    print("sent",total_sent)
+
+            self.finish()
 class ListRequestHandler(tornado.web.RequestHandler):
    @tornado.web.asynchronous
    @gen.coroutine
@@ -88,7 +131,7 @@ class StreamingRequestHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
    tornado.options.parse_command_line()
-   application = tornado.web.Application([(r"/download", StreamingRequestHandler),(r"/list",ListRequestHandler)])
+   application = tornado.web.Application([(r"/download", StreamingRequestHandler),(r"/list",ListRequestHandler),(r"/read",ReadRequestHandler)])
    application.listen(8880)
    tornado.ioloop.IOLoop.instance().start()
 

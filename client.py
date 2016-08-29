@@ -6,9 +6,22 @@ from tornado import gen
 from functools import partial
 
 total_downloaded = 0
-filepath = sys.argv[1]
-uid = sys.argv[2]
-gid = sys.argv[3]
+action = sys.argv[1]
+filepath = sys.argv[2]
+def geturl():
+    if(action=="download"):
+        uid = sys.argv[3]
+        gid = sys.argv[4]
+        url = "http://127.0.0.1:8880/download?filepath="+filepath+"&uid="+uid+"&gid="+gid
+        return url
+    elif(action=="read"):
+        uid = sys.argv[3]
+        gid = sys.argv[4]
+        pos = sys.argv[5] 
+        url = "http://127.0.0.1:8880/read?filepath="+filepath+"&uid="+uid+"&gid="+gid+"&pos="+pos
+        return url
+        
+        
 def chunky(path, chunk):
    global total_downloaded
    total_downloaded += len(chunk)
@@ -19,8 +32,9 @@ def chunky(path, chunk):
 
 @gen.coroutine
 def writer(file_name):
-   url = "http://127.0.0.1:8880/download?filepath="+filepath+"&uid="+uid+"&gid="+gid
-   request = HTTPRequest(url, streaming_callback=partial(chunky, file_name))
+   f = open(os.path.basename(filepath)+"new",'w')
+   f.close()
+   request = HTTPRequest(geturl(), streaming_callback=partial(chunky, file_name))
    http_client = AsyncHTTPClient()
    response = yield http_client.fetch(request)
    tornado.ioloop.IOLoop.instance().stop()
