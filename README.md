@@ -10,12 +10,12 @@ check the "end" string to make sure you get the whole information。<br>
 Client:python3 client.py read filepath uid gid pos<br>
        for example:python3 client.py read /root/leaf/test78 0 0 138<br>
 Server:python3 server.py<br>
-Then new file will be store locally<br>
+Then new file will be stored locally<br>
 
 ##download
 Client: python3 client.py download /root/leaf/logclient 0 0 (the parameters are:filepath,uid,gid)<br>
         and the file will be downloaded with the filename filepathnew<br>
 server:just run :python3 server.py<br>
-
+Then the file will be downloaded
 
 
